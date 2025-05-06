@@ -6,31 +6,69 @@ let loggedInUser = null;
 
 
 // Function to handle login //takes in an event because info is in a form
-function handleLogin(event) { 
+async function handleLogin(event) { 
     event.preventDefault()
     const usernameElement = document.getElementById('username');
     console.log('usernameElement', usernameElement)
     const username = usernameElement.value
     console.log('username', username)
-
     const passwordElement = document.getElementById('password');
     console.log('passwordElement', passwordElement)
     const password = passwordElement.value;
     console.log('password', password)
 
-    console.log('user.username', user.username)
-    if (user.user !== username || user.password !== password) {
-        alert(`${username} or ${password} is not found`)
-        return
-    }
-    else {
-        loggedInUser = user;
-        console.log('loggedInUser', loggedInUser)
+
+    const response = await fetch('http://localhost:3000/login',
+    {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        })
+    })
+
+    console.log('response', response)
+
+    if(!response.ok){
+        alert('invalid credentials')
     }
 
+    let responseJson = await response.json()
+
+    console.log('responseJson', responseJson)
+
     let welcomeMessageElement = document.getElementById('welcome-message');
-    welcomeMessageElement.innerText = `Welcome ${loggedInUser.username}`
+    welcomeMessageElement.innerText = `Welcome ${username}`
 } // End handleLogin function
+
+
+// Function to handle contact form //takes in an event because info is in a form
+function handleContactForm(event) {
+    event.preventDefault(); // Prevents the page from reloading
+
+    //
+    const firstnameElement = document.getElementById('firstname');
+    //console.log('firstnameElement', firstnameElement);
+    const firstnameValue = firstnameElement.value;
+    console.log('First name value:', firstnameValue);
+
+    const lastnameElement = document.getElementById('lastname');
+    const lastnameValue = lastnameElement.value;
+    console.log('Last name value:', lastnameValue);
+
+    const emailEvent = document.getElementById('email');
+    const emailValue = emailEvent.value;
+    console.log('Email value:', emailValue);
+
+    const messageEvent = document.getElementById('message');
+    const messageValue = messageEvent.value;
+    console.log('Message value:', messageValue);
+    
+}
+
 
 
 function createMenu(menu){
@@ -167,12 +205,35 @@ function removeQuantity(index) {
 // i did add a ternary operator on the alert.  
 
 // ${loggedInUser && loggedInUser.username ? loggedInUser.username : 'Human'} - this bit is saying 'if loggedInUser is exists AND loggedInUser.username exists then display the value of loggedInUser.username.  if loggedInUser doesnt exist OR loggedInUser.username doesnt exist the display Human.  so you can think of the ? as an if and the : as an else.  you can have very long and confusing ternary operators so in most cases an if/else block might be a better way to go...for now :)
-function checkout() {
+async function checkout() {
     if (cart.length === 0) {
         alert('Your cart is empty!');
         return;
     }
-    alert(`Thank you for your purchase, ${loggedInUser && loggedInUser.username ? loggedInUser.username : 'Human'}!`);
+
+
+    console.log('cart in checkout', checkout)
+
+    //get cart array and pass it to server to be stored in OrderArray
+    const response = await fetch('http://localhost:3000/checkout',
+    {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(cart)
+    })
+    
+    console.log('response', response)
+
+    let responseJson = await response.json();
+
+    if(!response.ok){
+        alert(responseJson)
+    }
+
+   alert(`${responseJson.message}. Confirmation number: ${responseJson.confirmationNumber}`)
+
     cart.length = 0;
     updateCart();
 }
@@ -220,9 +281,6 @@ function hotOrCold(temp){
         tempElement.innerHTML = `<div onclick="addToCart('${hotItem.name}', '${hotItem.price}')">Why dont you try a ${hotItem.name}</div>`
     }
 }
-
-
-
 
 
 function getWeather(latitude, longitude){
