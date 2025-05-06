@@ -1,8 +1,3 @@
-
-
-// User data
-const user = { username: 'admin', password: 'password123'};
-
 // Cart data
 const cart =[];
 
